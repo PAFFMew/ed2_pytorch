@@ -1,0 +1,14 @@
+torch
+lightning
+tqdm
+selfies
+matplotlib
+pandas
+rdkit
+h5py
+cython
+scipy
+scikit-image
+nvitop
+jupyter
+ipykernel
