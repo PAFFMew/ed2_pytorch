@@ -1,16 +1,21 @@
 from torchsummary import summary
-from vae_resnet import VAEEncoder
+from vae_resnet import VAE
 
 
 def main():
-    # 1. Test VAE encoder
-    encoder = VAEEncoder(
-        input_channel=1,
+    encoder = VAE(
+        encoder_input_channel=1,
+        decoder_output_channel=16,
         encoder_conv_filter_channels=[16, 32, 64, 128],
+        decoder_conv_filter_channels=[128, 64, 32, 16],
         encoder_conv_kernel_sizes=[3, 3, 3, 3],
+        decoder_conv_kernel_sizes=[3, 3, 3, 3],
         encoder_conv_strides=[2, 2, 2, 2],
+        decoder_conv_strides=[2, 2, 2, 2],
         z_dim=400,
         r_loss_factor=50000,
+        n_input_dims=5,
+        n_output_dims=5,
         use_conv_bias=True,
         use_batch_norm=True,
         use_dropout=True,
