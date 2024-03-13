@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import torch
 import torch.nn as nn
 from torch import Tensor
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import math
 
 from module import ConvBlock, IdentityBlock
@@ -24,7 +26,7 @@ def preprocess(data: Tensor) -> Tensor:
     return transform_ed(torch.tanh(data))
 
 
-class VAEEncoder(nn.Module):
+class VAEResnetEncoder(nn.Module):
     def __init__(
             self,
             input_channel: int,
@@ -32,19 +34,17 @@ class VAEEncoder(nn.Module):
             encoder_conv_kernel_sizes: List[int],
             encoder_conv_strides: List[int],
             z_dim: int,
-            r_loss_factor: float,
             n_input_dims: int = 5,
             use_conv_bias: bool = False,
             use_batch_norm: bool = False,
             use_dropout: bool = False,
     ):
-        super().__init__()
+        super(VAEResnetEncoder, self).__init__()
 
         self.encoder_conv_kernels = encoder_conv_filter_channels
         self.encoder_conv_kernel_size = encoder_conv_kernel_sizes
         self.encoder_conv_strides = encoder_conv_strides
         self.z_dim = z_dim
-        self.r_loss_factor = r_loss_factor
         self.use_conv_bias = use_conv_bias
         self.use_batch_norm = use_batch_norm
         self.use_dropout = use_dropout
@@ -92,7 +92,7 @@ class VAEEncoder(nn.Module):
         return mu, log_var, z
 
 
-class VAEDecoder(nn.Module):
+class VAEResnetDecoder(nn.Module):
     def __init__(
             self,
             output_channel: int,
@@ -100,19 +100,17 @@ class VAEDecoder(nn.Module):
             decoder_conv_kernel_sizes: List[int],
             decoder_conv_strides: List[int],
             z_dim: int,
-            r_loss_factor: float,
             n_output_dims: int = 5,
             use_conv_bias: bool = False,
             use_batch_norm: bool = False,
             use_dropout: bool = False,
     ):
-        super().__init__()
+        super(VAEResnetDecoder, self).__init__()
 
         self.decoder_conv_kernels = decoder_conv_filter_channels
         self.decoder_conv_kernel_size = decoder_conv_kernel_sizes
         self.decoder_conv_strides = decoder_conv_strides
         self.z_dim = z_dim
-        self.r_loss_factor = r_loss_factor
         self.use_conv_bias = use_conv_bias
         self.use_batch_norm = use_batch_norm
         self.use_dropout = use_dropout
@@ -170,7 +168,7 @@ class VAEDecoder(nn.Module):
         return x
 
 
-class VAE(nn.Module):
+class VAEResnet(nn.Module):
     def __init__(
             self,
             encoder_input_channel: int,
@@ -182,40 +180,38 @@ class VAE(nn.Module):
             encoder_conv_strides: List[int],
             decoder_conv_strides: List[int],
             z_dim: int,
-            r_loss_factor: float,
             n_input_dims: int = 5,
             n_output_dims: int = 5,
             use_conv_bias: bool = False,
             use_batch_norm: bool = False,
             use_dropout: bool = False,
+            init_param_method: str = 'orthogonal',
     ):
-        super().__init__()
+        super(VAEResnet, self).__init__()
 
-        self.encoder = VAEEncoder(
+        self.encoder = VAEResnetEncoder(
             encoder_input_channel,
             encoder_conv_filter_channels,
             encoder_conv_kernel_sizes,
             encoder_conv_strides,
             z_dim,
-            r_loss_factor,
             n_input_dims,
             use_conv_bias,
             use_batch_norm,
             use_dropout,
         )
-        self.decoder = VAEDecoder(
+        self.decoder = VAEResnetDecoder(
             decoder_output_channel,
             decoder_conv_filter_channels,
             decoder_conv_kernel_sizes,
             decoder_conv_strides,
             z_dim,
-            r_loss_factor,
             n_output_dims,
             use_conv_bias,
             use_batch_norm,
             use_dropout,
         )
-        self._init_params()
+        self._init_params(mode=init_param_method)
 
     def _init_params(self, mode: str = 'orthogonal'):
         """Init all params of weights and biases."""
@@ -228,6 +224,7 @@ class VAE(nn.Module):
                 init_methods[mode](m.weight)
 
     def forward(self, inputs: Tensor) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
+        # TODO: This preprocessing part will be placed in Trainer.
         x = preprocess(inputs)
         mu_z, logvar_z, latent_z = self.encoder(x)
         x = self.decoder(latent_z)

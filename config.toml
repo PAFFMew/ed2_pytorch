@@ -1,0 +1,32 @@
+[model]
+seed = 42
+[model.vae]
+encoder_input_channel = 1
+decoder_output_channel = 16
+encoder_conv_filter_channels = [16, 32, 64, 128]
+decoder_conv_filter_channels = [128, 64, 32, 16]
+encoder_conv_kernel_sizes = [3, 3, 3, 3]
+decoder_conv_kernel_sizes = [3, 3, 3, 3]
+encoder_conv_strides = [2, 2, 2, 2]
+decoder_conv_strides = [2, 2, 2, 2]
+z_dim = 400
+n_input_dims = 5
+n_output_dims = 5
+use_conv_bias = false
+use_batch_norm = false
+use_dropout = false
+init_param_method = "orthogonal"
+
+[model.vae.loss]
+r_loss_factor = 50000
+
+[model.vae.optimizer]
+optimizer = "Adam"
+lr = 0.0001
+
+[logger]
+[logger.wandb]
+name = "QM9_pretraining"
+save_dir = "./logs/wandb"
+id = 1
+project = "1"

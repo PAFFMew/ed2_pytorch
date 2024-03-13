@@ -1,4 +1,4 @@
-torch
+torch>=2.0
 lightning
 tqdm
 selfies
@@ -13,3 +13,6 @@ nvitop
 jupyter
 ipykernel
 torchsummary
+toml
+wandb
+tensorboard

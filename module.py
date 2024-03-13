@@ -1,5 +1,5 @@
-import torch
-import numpy as np
+from __future__ import annotations
+
 import torch.nn as nn
 from torch import Tensor
 from typing import List, Tuple
